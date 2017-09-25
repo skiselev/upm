@@ -27,14 +27,14 @@
 #include <stdexcept>
 #include <string.h>
 
-#include "lsm9ds0.h"
+#include "lsm9ds0.hpp"
 
 using namespace upm;
 using namespace std;
 
 
-LSM9DS0::LSM9DS0(int bus, uint8_t gAddress, uint8_t xmAddress) :
-  m_i2cG(bus), m_i2cXM(bus), m_gpioG_INT(0), m_gpioG_DRDY(0),
+LSM9DS0::LSM9DS0(int bus, bool raw, uint8_t gAddress, uint8_t xmAddress) :
+  m_i2cG(bus, raw), m_i2cXM(bus, raw), m_gpioG_INT(0), m_gpioG_DRDY(0),
   m_gpioXM_GEN1(0), m_gpioXM_GEN2(0)
 {
   m_gAddr = gAddress;
@@ -741,14 +741,21 @@ uint8_t LSM9DS0::getInterruptGen2Src()
   return readReg(DEV_XM, REG_INT_GEN_2_SRC);
 }
 
-#ifdef SWIGJAVA
+#if defined(SWIGJAVA) || defined (JAVACALLBACK)
 void LSM9DS0::installISR(INTERRUPT_PINS_T intr, int gpio, mraa::Edge level,
-			 IsrCallback *cb)
+			 jobject runnable)
 {
-        installISR(intr, gpio, level, generic_callback_isr, cb);
-}
-#endif
+  // delete any existing ISR and GPIO context
+  uninstallISR(intr);
 
+  // greate gpio context
+  getPin(intr) = new mraa::Gpio(gpio);
+
+  getPin(intr)->dir(mraa::DIR_IN);
+  getPin(intr)->isr(level, runnable);
+
+}
+#else
 void LSM9DS0::installISR(INTERRUPT_PINS_T intr, int gpio, mraa::Edge level, 
                          void (*isr)(void *), void *arg)
 {
@@ -761,6 +768,7 @@ void LSM9DS0::installISR(INTERRUPT_PINS_T intr, int gpio, mraa::Edge level,
   getPin(intr)->dir(mraa::DIR_IN);
   getPin(intr)->isr(level, isr, arg);
 }
+#endif
 
 void LSM9DS0::uninstallISR(INTERRUPT_PINS_T intr)
 {

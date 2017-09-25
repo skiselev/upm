@@ -30,7 +30,7 @@
 #include <string>
 #include <stdexcept>
 #include <unistd.h>
-#include "tsl2561.h"
+#include "tsl2561.hpp"
 
 using namespace upm;
 
@@ -152,9 +152,9 @@ TSL2561::getLux()
     if (channel0 != 0) ratio1 = (channel1 << (LUX_RATIOSCALE+1)) / channel0;
 
     // round the ratio value
-    unsigned long ratio = (ratio1 + 1) >> 1;
+    int64_t ratio = (ratio1 + 1) >> 1;
 
-    unsigned int b, m;
+    unsigned int b = 0, m = 0;
 
     // CS package
     // Check if ratio <= eachBreak ?
@@ -175,7 +175,7 @@ TSL2561::getLux()
     else if (ratio > LUX_K8C)
        {b=LUX_B8C; m=LUX_M8C;}
 
-    uint64_t tempLux = 0;
+    int64_t tempLux = 0;
     tempLux = ((channel0 * b) - (channel1 * m));
     // do not allow negative lux value
     if (tempLux < 0) tempLux = 0;
@@ -195,12 +195,6 @@ TSL2561::i2cWriteReg (uint8_t reg, uint8_t value)
 {
     mraa::Result error = mraa::SUCCESS;
 
-    // Start transmission to device
-    error = m_i2ControlCtx.address (m_controlAddr);
-    if (error != mraa::SUCCESS) {
-        fprintf(stderr, "Error: on i2c bus address setup in i2cWriteReg()\n");
-        return error;
-    }
     // Write register to I2C
     error = m_i2ControlCtx.writeByte (reg);
     if (error != mraa::SUCCESS) {
@@ -224,13 +218,6 @@ mraa::Result
 TSL2561::i2cReadReg(uint8_t reg, uint8_t &data)
 {
     mraa::Result error = mraa::SUCCESS;
-
-    // Start transmission to device
-    error = m_i2ControlCtx.address(m_controlAddr);
-    if (error != mraa::SUCCESS) {
-        fprintf(stderr, "Error: on i2c bus address setup in i2cReadReg()\n");
-        return error;
-    }
 
     // Send address of register to be read.
     error = m_i2ControlCtx.writeByte(reg);

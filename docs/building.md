@@ -5,12 +5,21 @@ UPM uses cmake in order to make compilation relatively painless. Cmake runs
 build out of tree so the recommended way is to clone from git and make a build/
 directory.
 
-This project depends on libmraa, so that needs to be installed first. Use the
-following environment variables to configure the paths:
+**Dependencies**
+ * basic: libmraa, cmake, swig, pkgconfig, pthreads, librt
+ * bindings: python-dev, nodejs-dev, openjdk
+ * documentation: doxygen, graphviz, sphinx, yuidoc
+ * sensor specific: bacnet-mstp, modbus, openzwave, jpeg
 
-    PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.../mraa/build/lib/pkgconfig
-    CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:.../mraa/build/include
-    LIBRARY_PATH=$LIBRARY_PATH:.../mraa/build/lib
+This project depends on libmraa, so that needs to be installed first. Append
+the install location of mraa pkgconfig to the following environment variable:
+
+~~~~~~~~~~~~~
+PKG_CONFIG_PATH=$PKG_CONFIG_PATH:.../mraa/build/lib/pkgconfig
+~~~~~~~~~~~~~
+
+If you are building the Java or Node.js bindings make sure you set the
+`JAVA_HOME` and `NODE_PATH` environment variables respectively.
 
 UPM will attempt to build all directories inside src/ and they must contain
 individual CMakeLists.txt files.
@@ -47,6 +56,10 @@ Cross-compiling on a different system:
 -DCMAKE_CXX_FLAGS:STRING=-m32 -march=i586
 -DCMAKE_C_FLAGS:STRING=-m32 -march=i586
 ~~~~~~~~~~~~~
+Enabling Java module building
+~~~~~~~~~~~~~
+-DBUILDSWIGJAVA=ON
+~~~~~~~~~~~~~
 Building with an older version of swig (swig 2.0+) requires the disabling of javascript:
 ~~~~~~~~~~~~~
 -DBUILDSWIGNODE=OFF
@@ -59,20 +72,20 @@ Setting the python library to use:
 ~~~~~~~~~~~~~
 -DPYTHON_LIBRARY:FILEPATH=/usr/lib/libpython2.7.so.1.0
 ~~~~~~~~~~~~~
-Building doxygen doc
+Building documentation
 ~~~~~~~~~~~~~
 -DBUILDDOC=ON
 ~~~~~~~~~~~~~
-Build C++ example binaries
+Build C/C++/JAVA examples
 ~~~~~~~~~~~~~
 -DBUILDEXAMPLES=ON
 ~~~~~~~~~~~~~
 
-If you intend to turn on all the options and build everything at once (C++,
-Node, Python and Documentation) you will have to edit the src/doxy2swig.py file
-and change the line endings from Windows style to Linux format. This has to be
-repeated every time to sync with the master branch since our Github repository
-stores files using CR LF line breaks.
+If you intend to turn on all the options and build everything at once
+(C++, Java, Node, Python and Documentation) you will have to edit the
+src/doxy2swig.py file and change the line endings from Windows style to Linux
+format. This has to be repeated every time to sync with the master branch since
+our Github repository stores files using CR LF line breaks.
 
 You can also generate the include and lib directories containing all the sensor
 headers and library files respectively with *make install*. Further, you may
@@ -113,3 +126,101 @@ autotools on linux.
 ~~~~~~~~~~~
 pkg-config --cflags --libs upm-i2clcd
 ~~~~~~~~~~~
+
+## Building with Docker
+
+You can use `docker` and `docker-compose` to generate a complete build environment
+for upm without having to install any other tool.
+
+Requirements:
+* [docker](https://www.docker.com/get-docker) >= 1.12.6
+* [docker-compose](https://docs.docker.com/compose/install/) >= 1.9.0
+
+**NOTE:** docker-compose is an optional requirement. It actually make running complex
+docker build and run command easier. But you can just use docker to build and run.
+
+### Using Docker Images to build Upm
+
+**tl;dr:** Just use this commands to build upm:
+
+```sh
+# Build upm documentation
+$ docker-compose run doc
+# Build upm python2 and python3 packages and run python tests
+$ docker-compose run python
+# Build upm java package and run java tests
+$ docker-compose run java
+# Build upm node4 package and run node tests
+$ docker-compose run node4
+# Build upm node5 package and run node tests
+$ docker-compose run node5
+# Build upm node6 package and run node tests
+$ docker-compose run node6
+# Build upm for android things package
+$ docker-compose run android
+```
+
+**docker-compose** will take a look at the `docker-compose.yaml` file in the repository
+root directory, and run an specific command to build upm for the requested target.
+Once the build is completed, you will have a `build/` folder in the repository root with all
+the compiled code. This `build/` folder is created by using a docker volume. The `build\`
+folder contents is reused each time you execute `docker-compose run [TARGET]`.
+To know more about volumes in Docker, visit the [Docker Volume Documentation](https://docs.docker.com/engine/tutorials/dockervolumes/).
+
+You can also start an interactive session inside the docker container if you need to run some
+custom build commands:
+
+```sh
+# Start an interactive bash  shell inside the container
+$ docker-compose run python bash
+# From now, all the commands are executed inside the container
+$ cd build && cmake -DBUILDSWIGPYTHON=ON .. && make clean all
+```
+
+If you don't want to use docker-compose, you can also use `docker run` to build upm.
+For example, to build upm for python, you can do:
+
+```sh
+# From the repository root folder
+$ docker run \
+      --volume=$(pwd):/usr/src/app \
+      --env BUILDSWIGPYTHON=ON \
+      --env BUILDSWIGJAVA=OFF \
+      --env BUILDSWIGNODE=OFF \
+      dnoliver/upm-python \
+      bash -c "./scripts/run-cmake.sh && make -Cbuild"
+```
+
+### Proxy considerations
+
+If, for some reason, you are behind a proxy, find below a list of common problems related
+to proxy settings:
+
+**docker cannot pull images from docker.io**
+
+ Visit [this link](https://docs.docker.com/engine/admin/systemd/#httphttps-proxy)
+ to configure docker daemon behind a proxy.
+
+**docker run fails to access the internet**
+
+docker-compose will automatically take `http_proxy`, `https_proxy`, and `no_proxy`
+environment variables and use it as build arguments. Be sure to properly configure
+this variables before building.
+
+docker, unlinke docker-compose, do not take the proxy settings from the environment
+automatically. You need to send them as environment arguments:
+
+```sh
+# From the repository root folder
+$ docker run \
+    --volume=$(pwd):/usr/src/app \
+    --env BUILDSWIG=ON \
+    --env BUILDSWIGPYTHON=ON \
+    --env BUILDSWIGJAVA=OFF \
+    --env BUILDSWIGNODE=OFF \
+    --env http_proxy=$http_proxy \
+    --env https_proxy=$https_proxy \
+    --env no_proxy=$no_proxy \
+    dnoliver/upm-python \
+    bash -c "./scripts/run-cmake.sh && make -Cbuild"
+```

@@ -7,7 +7,7 @@
 %apply float *OUTPUT { float *xAccel, float *yAccel, float *zAccel  };
 
 %{
-    #include "adxl335.h"
+    #include "adxl335.hpp"
 %}
 
 %typemap(jni) float* "jfloatArray"
@@ -40,4 +40,15 @@
 %ignore values(int *, int *, int *);
 %ignore acceleration(float *, float *, float *);
 
-%include "adxl335.h"
+%include "adxl335.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_adxl335");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

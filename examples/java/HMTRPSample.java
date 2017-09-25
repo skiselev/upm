@@ -27,15 +27,6 @@ public class HMTRPSample {
 
 	static private final int bufferLength = 255;
 
-	static {
-		try {
-			System.loadLibrary("javaupm_hmtrp");
-		} catch (UnsatisfiedLinkError e) {
-			System.err.println("error in loading native library");
-			System.exit(-1);
-		}
-	}
-
 	private static void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("Pass a commandline argument (any argument) to this program");
@@ -68,7 +59,7 @@ public class HMTRPSample {
 		// device, and periodically transmit "Hello World".
 
 		// If any argument was specified on the command line, do a simple
-		// configuration query and output the results. The radio must be in·
+		// configuration query and output the results. The radio must be in
 		// CONFIG mode for this to work.
 
 		if (args.length > 0) {

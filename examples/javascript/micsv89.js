@@ -7,8 +7,6 @@
 // in Javascript for some of the common LCD functions
 
 // configure jshint
-/*jslint node:true, vars:true, bitwise:true, unparam:true */
-/*jshint unused:true */
 
 var upmMICSV89 = require("jsupm_micsv89"); 
 
@@ -16,7 +14,7 @@ var mics = new upmMICSV89.MICSV89(6);
 
 while(1)
 {
-    mics.start(); 
+    mics.update(); 
     while(!mics.valid());
     console.log("co2: " + mics.co2equ()); 
     console.log("short: " + mics.vocshort()); 

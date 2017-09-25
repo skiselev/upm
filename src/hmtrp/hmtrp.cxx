@@ -26,7 +26,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "hmtrp.h"
+#include "hmtrp.hpp"
 
 using namespace upm;
 using namespace std;
@@ -85,7 +85,6 @@ bool HMTRP::dataAvailable(unsigned int millis)
   timeout.tv_sec = 0;
   timeout.tv_usec = millis * 1000;
 
-  int nfds;  
   fd_set readfds;
 
   FD_ZERO(&readfds);
@@ -452,6 +451,15 @@ bool HMTRP::getRFSignalStrength(uint8_t *strength)
   return true;
 }
 
+uint8_t HMTRP::getRFSignalStrength()
+{
+  uint8_t strength = 0;
+  if (!getRFSignalStrength(&strength))
+    throw std::runtime_error(std::string(__PRETTY_FUNCTION__) +
+                                ": readData() failed");
+  return strength;
+}
+
 bool HMTRP::getModSignalStrength(uint8_t *strength)
 {
   if (!strength)
@@ -482,5 +490,14 @@ bool HMTRP::getModSignalStrength(uint8_t *strength)
   *strength = (uint8_t)buf;
 
   return true;
+}
+
+uint8_t HMTRP::getModSignalStrength()
+{
+  uint8_t strength = 0;
+  if (!getModSignalStrength(&strength))
+    throw std::runtime_error(std::string(__PRETTY_FUNCTION__) +
+                                ": readData() failed");
+  return strength;
 }
 

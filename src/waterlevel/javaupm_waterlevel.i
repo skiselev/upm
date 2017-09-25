@@ -2,7 +2,18 @@
 %include "../upm.i"
 
 %{
-    #include "waterlevel.h"
+    #include "waterlevel.hpp"
 %}
 
-%include "waterlevel.h"
+%include "waterlevel.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_waterlevel");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

@@ -9,7 +9,7 @@
 %ignore i2cContext;
 
 %{
-    #include "h3lis331dl.h"
+    #include "h3lis331dl.hpp"
 %}
 
 %typemap(jni) float* "jfloatArray"
@@ -48,4 +48,15 @@
 %ignore getXYZ(int *, int *, int *);
 %ignore getAcceleration(float *, float *, float *);
 
-%include "h3lis331dl.h"
+%include "h3lis331dl.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_h3lis331dl");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

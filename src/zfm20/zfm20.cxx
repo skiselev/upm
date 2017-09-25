@@ -26,7 +26,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "zfm20.h"
+#include "zfm20.hpp"
 
 using namespace upm;
 using namespace std;
@@ -90,7 +90,6 @@ bool ZFM20::dataAvailable(unsigned int millis)
   timeout.tv_sec = 0;
   timeout.tv_usec = millis * 1000;
 
-  int nfds;  
   fd_set readfds;
 
   FD_ZERO(&readfds);
@@ -281,7 +280,6 @@ bool ZFM20::getResponse(uint8_t *pkt, int len)
   int idx = 0;
   int timer = 0;
   int rv;
-  int plen = 0;
 
   while (idx < len)
     {
@@ -323,10 +321,10 @@ bool ZFM20::verifyPassword()
 {
   const int pktLen = 5;
   uint8_t pkt[pktLen] = {CMD_VERIFY_PASSWORD, 
-                         (m_password >> 24) & 0xff,
-                         (m_password >> 16) & 0xff,
-                         (m_password >> 8) & 0xff,
-                         m_password & 0xff };
+                         static_cast<uint8_t>((m_password >> 24) & 0xff),
+                         static_cast<uint8_t>((m_password >> 16) & 0xff),
+                         static_cast<uint8_t>((m_password >> 8) & 0xff),
+                         static_cast<uint8_t>(m_password & 0xff) };
 
   writeCmdPacket(pkt, pktLen);
 
@@ -368,10 +366,10 @@ bool ZFM20::setNewPassword(uint32_t pwd)
 {
   const int pktLen = 5;
   uint8_t pkt[pktLen] = {CMD_SET_PASSWORD, 
-                         (pwd >> 24) & 0xff,
-                         (pwd >> 16) & 0xff,
-                         (pwd >> 8) & 0xff,
-                         pwd & 0xff };
+                         static_cast<uint8_t>((pwd >> 24) & 0xff),
+                         static_cast<uint8_t>((pwd >> 16) & 0xff),
+                         static_cast<uint8_t>((pwd >> 8) & 0xff),
+                         static_cast<uint8_t>(pwd & 0xff) };
 
   writeCmdPacket(pkt, pktLen);
 
@@ -398,10 +396,10 @@ bool ZFM20::setNewAddress(uint32_t addr)
 {
   const int pktLen = 5;
   uint8_t pkt[pktLen] = {CMD_SET_ADDRESS, 
-                         (addr >> 24) & 0xff,
-                         (addr >> 16) & 0xff,
-                         (addr >> 8) & 0xff,
-                         addr & 0xff };
+                         static_cast<uint8_t>((addr >> 24) & 0xff),
+                         static_cast<uint8_t>((addr >> 16) & 0xff),
+                         static_cast<uint8_t>((addr >> 8) & 0xff),
+                         static_cast<uint8_t>(addr & 0xff) };
 
   writeCmdPacket(pkt, pktLen);
 
@@ -451,7 +449,7 @@ uint8_t ZFM20::image2Tz(int slot)
 
   const int pktLen = 2;
   uint8_t pkt[pktLen] = {CMD_IMG2TZ,
-                         (slot & 0xff)};
+                         static_cast<uint8_t>(slot & 0xff)};
 
   writeCmdPacket(pkt, pktLen);
 
@@ -491,9 +489,9 @@ uint8_t ZFM20::storeModel(int slot, uint16_t id)
 
   const int pktLen = 4;
   uint8_t pkt[pktLen] = {CMD_STORE,
-                         (slot & 0xff),
-                         (id >> 8) & 0xff,
-                         id & 0xff};
+                         static_cast<uint8_t>(slot & 0xff),
+                         static_cast<uint8_t>((id >> 8) & 0xff),
+                         static_cast<uint8_t>(id & 0xff)};
 
   writeCmdPacket(pkt, pktLen);
 
@@ -510,8 +508,8 @@ uint8_t ZFM20::deleteModel(uint16_t id)
 {
   const int pktLen = 5;
   uint8_t pkt[pktLen] = {CMD_DELETE_TMPL,
-                         (id >> 8) & 0xff,
-                         id & 0xff,
+                         static_cast<uint8_t>((id >> 8) & 0xff),
+                         static_cast<uint8_t>(id & 0xff),
                          0x00,
                          0x01};
 
@@ -557,7 +555,7 @@ uint8_t ZFM20::search(int slot, uint16_t *id, uint16_t *score)
   // search from page 0x0000 to page 0x00a3
   const int pktLen = 6;
   uint8_t pkt[pktLen] = {CMD_SEARCH,
-                         (slot & 0xff),
+                         static_cast<uint8_t>(slot & 0xff),
                          0x00,
                          0x00,
                          0x00,

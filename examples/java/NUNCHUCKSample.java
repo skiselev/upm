@@ -24,47 +24,38 @@
 
 public class NUNCHUCKSample {
 
-	static {
-		try {
-			System.loadLibrary("javaupm_nunchuck");
-		} catch (UnsatisfiedLinkError e) {
-			System.err.println("error in loading native library");
-			System.exit(-1);
-		}
-	}
+    public static void main(String[] args) throws InterruptedException {
+        // ! [Interesting]
+        // Instantiate a nunchuck controller bus 0
+        upm_nunchuck.NUNCHUCK nunchuck = new upm_nunchuck.NUNCHUCK(3);
 
-	public static void main(String[] args) throws InterruptedException {
-		// ! [Interesting]
-		// Instantiate a nunchuck controller bus 0
-		upm_nunchuck.NUNCHUCK nunchuck = new upm_nunchuck.NUNCHUCK(0);
+        while (true)
+        {
+            nunchuck.update();
+            System.out.println("stickX: "
+                               + nunchuck.getStickX()
+                               + ", stickY: "
+                               + nunchuck.getStickY());
+            System.out.println("accelX: "
+                               + nunchuck.getAccelX()
+                               + ", accelY: "
+                               + nunchuck.getAccelY()
+                               + ", accelZ: "
+                               + nunchuck.getAccelZ());
 
-		// always do this first
-		System.out.println("Initializing... ");
-		if (!nunchuck.init()) {
-			System.err.println("nunchuck->init() failed.");
-			return;
-		}
+            if (nunchuck.getButtonC())
+                System.out.println("Button C pressed");
+            else
+                System.out.println("Button C not pressed");
 
-		while (true) {
-			nunchuck.update();
-			System.out.println("stickX: " + nunchuck.getStickX() + ", stickY: "
-					+ nunchuck.getStickY());
-			System.out.println("accelX: " + nunchuck.getAccelX() + ", accelY: "
-					+ nunchuck.getAccelY() + ", accelZ: " + nunchuck.getAccelZ());
+            if (nunchuck.getButtonZ())
+                System.out.println("Button Z pressed");
+            else
+                System.out.println("Button Z not pressed");
 
-			if (nunchuck.getButtonC())
-				System.out.println("Button C pressed");
-			else
-				System.out.println("Button C not pressed");
-
-			if (nunchuck.getButtonZ())
-				System.out.println("Button Z pressed");
-			else
-				System.out.println("Button Z not pressed");
-
-			Thread.sleep(1000);
-		}
-		// ! [Interesting]
-	}
+            Thread.sleep(100);
+        }
+        // ! [Interesting]
+    }
 
 }

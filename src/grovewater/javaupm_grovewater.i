@@ -2,7 +2,18 @@
 %include "../upm.i"
 
 %{
-    #include "grovewater.h"
+    #include "grovewater.hpp"
 %}
 
-%include "grovewater.h"
+%include "grovewater.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_grovewater");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

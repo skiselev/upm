@@ -2,7 +2,7 @@
 %include "../upm.i"
 
 %{
-    #include "adxl345.h"
+    #include "adxl345.hpp"
 %}
 
 %typemap(jni) float* "jfloatArray"
@@ -16,7 +16,6 @@
 %typemap(out) float * {
     $result = JCALL1(NewFloatArray, jenv, 3);
     JCALL4(SetFloatArrayRegion, jenv, $result, 0, 3, $1);
-    delete [] $1;
 }
 
 
@@ -34,4 +33,15 @@
     delete [] $1;
 }
 
-%include "adxl345.h"
+%include "adxl345.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_adxl345");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

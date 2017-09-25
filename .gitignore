@@ -1,4 +1,4 @@
-build/
+build*/
 
 # Object files
 *.o
@@ -11,3 +11,6 @@ build/
 # Temp files
 *.swp
 *~
+
+# Node modules
+**/node_modules

@@ -1,5 +1,16 @@
 /*
+ * Author: Jon Trulson <jtrulson@ics.com>
+ * Copyright (c) 2016 Intel Corporation.
+ *
+ * These modules were rewritten, based on original work by:
+ *
+ * (original my9221/groveledbar driver)
  * Author: Yevgeniy Kiveisha <yevgeniy.kiveisha@intel.com>
+ * Copyright (c) 2014 Intel Corporation.
+ *
+ * (grovecircularled driver)
+ * Author: Jun Kato and Yevgeniy Kiveisha <yevgeniy.kiveisha@intel.com>
+ * Contributions: Jon Trulson <jtrulson@ics.com>
  * Copyright (c) 2014 Intel Corporation.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -28,79 +39,52 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "my9221.h"
+#include "my9221.hpp"
 
 using namespace upm;
+using namespace std;
 
-MY9221::MY9221 (uint8_t di, uint8_t dcki)
-                    : m_clkPinCtx(dcki), m_dataPinCtx(di) {
-    mraa::Result error = mraa::SUCCESS;
+MY9221::MY9221 (int dataPin, int clockPin, int instances) :
+    m_my9221(my9221_init(dataPin, clockPin, instances))
+{
+    if (!m_my9221)
+        throw std::runtime_error(std::string(__FUNCTION__) +
+                                 ": my9221_init() failed");
 
-    // set direction (out)
-    error = m_clkPinCtx.dir(mraa::DIR_OUT);
-    if (error != mraa::SUCCESS) {
-        mraa::printError(error);
-    }
-
-    // set direction (out)
-    error = m_dataPinCtx.dir(mraa::DIR_OUT);
-    if (error != mraa::SUCCESS) {
-        mraa::printError(error);
-    }
 }
 
-mraa::Result
-MY9221::setBarLevel (uint8_t level, bool direction) {
-    if (level > 10) {
-        return mraa::ERROR_INVALID_PARAMETER;
-    }
-
-    send16bitBlock (CMDMODE);
-    if (direction) {
-        level += 3;
-        for(uint8_t block_idx = 12; block_idx > 0; block_idx--) {
-            uint32_t state = (block_idx < level) ? BIT_HIGH : BIT_LOW;
-            send16bitBlock (state);
-        }
-    } else {
-        for(uint8_t block_idx = 0; block_idx < 12; block_idx++) {
-            uint32_t state = (block_idx < level) ? BIT_HIGH : BIT_LOW;
-            send16bitBlock (state);
-        }
-    }
-    return lockData ();
+MY9221::~MY9221()
+{
+    my9221_close(m_my9221);
 }
 
-mraa::Result
-MY9221::lockData () {
-    mraa::Result error = mraa::SUCCESS;
-    error = m_dataPinCtx.write(LOW);
-    usleep(100);
-
-    for(int idx = 0; idx < 4; idx++) {
-        error = m_dataPinCtx.write(HIGH);
-        error = m_dataPinCtx.write(LOW);
-    }
-    return error;
+void MY9221::setLED(int led, bool on)
+{
+    my9221_set_led(m_my9221, led, on);
 }
 
-mraa::Result
-MY9221::send16bitBlock (short data) {
-    mraa::Result error = mraa::SUCCESS;
-    for (uint8_t bit_idx = 0; bit_idx < MAX_BIT_PER_BLOCK; bit_idx++) {
-        uint32_t state = (data & 0x8000) ? HIGH : LOW;
-        error = m_dataPinCtx.write(state);
-        state = m_clkPinCtx.read();
-
-        if (state) {
-            state = LOW;
-        } else {
-            state = HIGH;
-        }
-
-        error = m_clkPinCtx.write(state);
-
-        data <<= 1;
-    }
-    return error;
+void MY9221::setLowIntensityValue(int intensity)
+{
+    my9221_set_low_intensity_value(m_my9221, intensity);
 }
+
+void MY9221::setHighIntensityValue(int intensity)
+{
+    my9221_set_high_intensity_value(m_my9221, intensity);
+}
+
+void MY9221::setAll()
+{
+    my9221_set_all(m_my9221);
+}
+
+void MY9221::clearAll()
+{
+    my9221_clear_all(m_my9221);
+}
+
+void MY9221::refresh()
+{
+    my9221_refresh(m_my9221);
+}
+

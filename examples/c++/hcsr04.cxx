@@ -24,46 +24,39 @@
 
 #include <unistd.h>
 #include <iostream>
-#include "hcsr04.h"
+#include "hcsr04.hpp"
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/time.h>
 
-upm::HCSR04 *sonar = NULL;
+int shouldRun = true;
 
 void
 sig_handler(int signo)
 {
-    printf("got signal\n");
     if (signo == SIGINT) {
-        printf("exiting application\n");
-        sonar->m_doWork = 1;
+        shouldRun = false;
     }
 }
 
 //! [Interesting]
-void
-interrupt (void * args) {
-    sonar->ackEdgeDetected ();
-}
-
 int
 main(int argc, char **argv)
 {
-    sonar = new upm::HCSR04(5, 6, &interrupt);
+    upm::HCSR04 *sonar = new upm::HCSR04(2, 4);
     signal(SIGINT, sig_handler);
 
     sleep(1);
 
-    for(;;){
+    while(shouldRun){
         std::cout << "get distance" << std::endl;
-        double distance = sonar->getDistance(CM);
+        double distance = sonar->getDistance(HCSR04_CM);
         std::cout << "distance " << distance << std::endl;
-        sleep(5);
+        sleep(2);
     }
+    std::cout << "Exiting... " << std::endl;
 
     delete sonar;
-
     return 0;
 }
 //! [Interesting]

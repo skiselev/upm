@@ -23,23 +23,28 @@
 }
 
 %{
-    #include "lcd.h"
-    #include "ssd.h"
-    #include "ssd1327.h"
-    #include "ssd1308.h"
-    #include "ssd1306.h"
-    #include "eboled.h"
-    #include "lcm1602.h"
-    #include "jhd1313m1.h"
-    #include "sainsmartks.h"
+    #include "lcd.hpp"
+    #include "ssd.hpp"
+    #include "ssd1327.hpp"
+    #include "ssd1308.hpp"
+    #include "ssd1306.hpp"
+    #include "eboled.hpp"
 %}
 
-%include "lcd.h"
-%include "ssd.h"
-%include "ssd1327.h"
-%include "ssd1308.h"
-%include "ssd1306.h"
-%include "eboled.h"
-%include "lcm1602.h"
-%include "jhd1313m1.h"
-%include "sainsmartks.h"
+%include "lcd.hpp"
+%include "ssd.hpp"
+%include "ssd1327.hpp"
+%include "ssd1308.hpp"
+%include "ssd1306.hpp"
+%include "eboled.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_i2clcd");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

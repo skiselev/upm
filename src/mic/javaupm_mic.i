@@ -4,7 +4,7 @@
 %include "arrays_java.i"
 
 %{
-    #include "mic.h"
+    #include "mic.hpp"
 %}
 
 %typemap(jni) (uint16_t *buffer, int len) "jshortArray";
@@ -37,4 +37,15 @@
         JCALL3(ReleaseShortArrayElements, jenv, $input, (jshort *)$2, 0);
 }
 
-%include "mic.h"
+%include "mic.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_mic");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

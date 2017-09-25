@@ -1,5 +1,3 @@
-/*jslint node:true, vars:true, bitwise:true, unparam:true */
-/*jshint unused:true */
 /*
  * Author: Jun Kato
  * Contributions: Jon Trulson <jtrulson@ics.com>
@@ -25,9 +23,9 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// Instantiate a Grove Circular LED on gpio pins 5 and 4
-var GCL = require("jsupm_grovecircularled");
-var circle = new GCL.GroveCircularLED(5, 4);
+// Instantiate a Grove Circular LED on gpio pins 9 and 8
+var GCL = require("jsupm_my9221");
+var circle = new GCL.GroveCircularLED(9, 8);
 var level = 0;
 
 // Show a spinner.

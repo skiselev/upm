@@ -1,31 +1,61 @@
-%module (directors="1", docstring="Basic Grove sensors") javaupm_grove
+%module (docstring="Basic Grove sensors") javaupm_grove
 
 %include "../upm.i"
 
-%feature("director") IsrCallback;
-
-%ignore generic_callback_isr;
-%include "../IsrCallback.h"
-
 %apply int {mraa::Edge}
 
+%include "grove.hpp"
 %{
-    #include "grove.h"
+    #include "grove.hpp"
 %}
-/*
-%typemap(jni) mraa_result_t "jint"
-%typemap(jstype) mraa_result_t "int"
-%typemap(jtype) mraa_result_t "int"
 
+%include "grovebase.hpp"
+%{
+    #include "grovebase.hpp"
+%}
 
-%typemap(javaout) mraa_result_t {
-    return $jnicall;
-}
+%include "grovebutton.hpp"
+%{
+    #include "grovebutton.hpp"
+%}
 
+%include "groveled.hpp"
+%{
+    #include "groveled.hpp"
+%}
 
-%typemap(out) mraa_result_t {
-        $result = (int)$1;
-}
-*/
-%include "grove.h"
+%include "grovelight.hpp"
+%{
+    #include "grovelight.hpp"
+%}
 
+%include "groverelay.hpp"
+%{
+    #include "groverelay.hpp"
+%}
+
+%include "groverotary.hpp"
+%{
+    #include "groverotary.hpp"
+%}
+
+%include "groveslide.hpp"
+%{
+    #include "groveslide.hpp"
+%}
+
+%include "grovetemp.hpp"
+%{
+    #include "grovetemp.hpp"
+%}
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_grove");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

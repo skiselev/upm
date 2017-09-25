@@ -26,7 +26,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "mhz16.h"
+#include "mhz16.hpp"
 
 using namespace upm;
 using namespace std;
@@ -84,7 +84,6 @@ bool MHZ16::dataAvailable(unsigned int millis)
   timeout.tv_sec = 0;
   timeout.tv_usec = millis * 1000;
 
-  int nfds;  
   fd_set readfds;
 
   FD_ZERO(&readfds);
@@ -183,7 +182,7 @@ bool MHZ16::verifyPacket(uint8_t *pkt, int len)
   return true;
 }
 
-bool MHZ16::getData(int *gas, int *temp)
+bool MHZ16::getData()
 {
   // the query command
   const unsigned char cmd[9] = 
@@ -214,10 +213,20 @@ bool MHZ16::getData(int *gas, int *temp)
   verifyPacket(packet, sizeof(packet));
 
   // pull out the data and return it.
-  *gas = (packet[2] << 8) | packet[3];
-  *temp = packet[4] - 40;
+  gas = (packet[2] << 8) | packet[3];
+  temp = packet[4] - 40;
 
   return true;
+}
+
+int MHZ16::getGas()
+{
+  return gas;
+}
+
+int MHZ16::getTemperature()
+{
+  return temp;
 }
 
 void MHZ16::calibrateZeroPoint()

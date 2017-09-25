@@ -26,7 +26,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "a110x.h"
+#include "a110x.hpp"
 
 using namespace upm;
 using namespace std;
@@ -58,9 +58,9 @@ bool A110X::magnetDetected()
 }
 
 #ifdef JAVACALLBACK
-void A110X::installISR( IsrCallback *cb)
+void A110X::installISR(jobject runnable)
 {
-installISR(generic_callback_isr, cb);
+installISR(mraa_java_isr_callback, runnable);
 }
 #endif
 
@@ -70,7 +70,7 @@ void A110X::installISR(void (*isr)(void *), void *arg)
     uninstallISR();
 
   // install our interrupt handler
-  mraa_gpio_isr(m_gpio, MRAA_GPIO_EDGE_FALLING, 
+  mraa_gpio_isr(m_gpio, MRAA_GPIO_EDGE_BOTH, 
                 isr, arg);
   m_isrInstalled = true;
 }

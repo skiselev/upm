@@ -27,7 +27,7 @@
 #include <stdexcept>
 #include <unistd.h>
 #include "math.h"
-#include "itg3200.h"
+#include "itg3200.hpp"
 
 #define READ_BUFFER_LENGTH 8
 
@@ -86,7 +86,7 @@ Itg3200::calibrate(void)
     for(int i = 0; i < reads; i++){
 
         Itg3200::update();
-        if (i > skip){
+        if (i >= skip){
             for (int j = 0; j < 3; j++){
                 temp[j] += m_rotation[j];
             }
@@ -129,10 +129,8 @@ Itg3200::getRawTemp()
 mraa::Result
 Itg3200::update(void)
 {
-    m_i2c.address(ITG3200_I2C_ADDR);
     m_i2c.writeByte(ITG3200_TEMP_H);
 
-    m_i2c.address(ITG3200_I2C_ADDR);
     m_i2c.read(m_buffer, DATA_REG_SIZE);
 
     //temp

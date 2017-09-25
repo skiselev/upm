@@ -1,6 +1,8 @@
 /*
  * Author: Yevgeniy Kiveisha <yevgeniy.kiveisha@intel.com>
  * Author: Rafael Neri <rafael.neri@gmail.com>
+ * Author: Jun Kato <i@junkato.jp>
+ * Contributions by: Abhishek Malik <abhishek.malik@intel.com>
  * Copyright (c) 2014-2015 Intel Corporation.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
@@ -24,95 +26,59 @@
  */
 #pragma once
 
-#include <string>
-#include <mraa/aio.h>
+#include <stdio.h>
+#include <string.h>
 #include <mraa/gpio.h>
-#include <mraa/pwm.h>
 #include <sys/time.h>
 
-#if defined(SWIGJAVA) || defined(JAVACALLBACK)
-#include "../IsrCallback.h"
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#define CM 1
-#define INC 0
-
-namespace upm {
-/**
- * @brief HC-SR04 Ultrasonic Sensor library
- * @defgroup hcsr04 libupm-hcsr04
- * @ingroup generic gpio sound
- */
+typedef enum {
+    HCSR04_CM = 0,
+    HCSR04_INCH } HCSR04_U;
 
 /**
+ * @file hcsr04.h
  * @library hcsr04
- * @sensor hcsr04
- * @comname HC-SR04 Ultrasonic Sensor
- * @type sound
- * @man generic
- * @con gpio
+ * @brief C API for the HCSR04 Ultrasonic Ranger sensor
  *
- * @brief API for the HC-SR04 Ultrasonic Sensor
- *
- * This module defines the HC-SR04 interface for libhcsr04
- *
- * @snippet hcsr04.cxx Interesting
+ * @include hcsr04.c
  */
-class HCSR04 {
-    public:
-        /**
-         * Instantiates an HCSR04 object
-         *
-         * @param triggerPin Pin to trigger the sensor for distance
-         * @param echoPin Pulse response to triggering
-         * @param fptr Function pointer to handle rising-edge and
-         * falling-edge interrupts
-         */
-#if defined(SWIGJAVA) || defined(JAVACALLBACK)
-        HCSR04 (uint8_t triggerPin, uint8_t echoPin, IsrCallback *cb);
-#else
-        HCSR04 (uint8_t triggerPin, uint8_t echoPin, void (*fptr)(void *));
-#endif
-        /**
-         * HCSR04 object destructor
-         */
-        ~HCSR04 ();
 
-        /**
-         * Gets the distance from the sensor
-         */
-        double getDistance (int sys);
+typedef struct _hcsr04_context {
+    mraa_gpio_context        trigPin;
+    mraa_gpio_context        echoPin;
+    int                      interruptCounter;
+    long                     startTime;
+    long                     endTime;
+} *hcsr04_context;
 
-        /**
-         * On each interrupt, this function detects if the interrupt
-         * was falling-edge or rising-edge.
-         * Should be called from the interrupt handler.
-         */
-        void ackEdgeDetected ();
+/**
+ * HCSR04 Initialization function
+ *
+ * @param triggerPin GPIO pin for trigger
+ * @param echoPin GPIO pin used for output from sensor
+ * @return hcsr04_context
+ */
+hcsr04_context hcsr04_init(int triggerPin, int echoPin);
 
-        uint8_t m_doWork; /**< Flag to control blocking function while waiting for a falling-edge interrupt */
+/**
+ * HCSR04 Close function
+ *
+ * @param dev hcsr04_context pointer
+ */
+void hcsr04_close(hcsr04_context dev);
 
-        /**
-         * Returns the name of the sensor
-         */
-        std::string name()
-        {
-            return m_name;
-        }
+/**
+ * Function to get the distance from the HCSR04 sensor
+ *
+ * @param unit cm/inches
+ * @return distance in specified unit
+ */
+double hcsr04_get_distance(hcsr04_context dev, HCSR04_U unit);
 
-    private:
-#if defined(SWIGJAVA) || defined(JAVACALLBACK)
-        HCSR04 (uint8_t triggerPin, uint8_t echoPin, void (*fptr)(void *));
-#endif
-        double timing();
-        mraa_gpio_context   m_triggerPinCtx;
-        mraa_gpio_context   m_echoPinCtx;
-
-        long    m_RisingTimeStamp;
-        long    m_FallingTimeStamp;
-        uint8_t m_InterruptCounter;
-
-        std::string         m_name;
-};
-
+#ifdef __cplusplus
 }
+#endif

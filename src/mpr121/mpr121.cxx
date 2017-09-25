@@ -26,7 +26,7 @@
 #include <string>
 #include <stdexcept>
 
-#include "mpr121.h"
+#include "mpr121.hpp"
 
 using namespace upm;
 using namespace std;
@@ -62,8 +62,6 @@ mraa::Result MPR121::writeBytes(uint8_t reg, uint8_t *buffer, int len)
   // copy in the buffer after the reg byte
   for (int i=1; i<(len + 1); i++)
     buf2[i] = buffer[i-1];
-
-  m_i2c.address(m_addr);
 
   return m_i2c.write(buf2, len + 1);
 }
@@ -147,7 +145,7 @@ bool MPR121::configAN3944()
   // Section D
   // Filter configuration
   // reg 0x5d
-  uint8_t filterConf = 0x04;
+  uint8_t filterConf = 0x24;
   if ((rv = writeBytes(0x5d, &filterConf, 1)) != mraa::SUCCESS)
     {
       throw std::runtime_error(std::string(__FUNCTION__) +
@@ -190,7 +188,6 @@ bool MPR121::configAN3944()
 
 void MPR121::readButtons()
 {
-  uint8_t rv;
   uint8_t buffer[2];
 
   // read in the 2 bytes at register 0x00-0x01, and setup the member

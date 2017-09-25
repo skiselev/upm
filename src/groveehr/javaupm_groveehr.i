@@ -4,7 +4,18 @@
 %ignore beatISR;
 
 %{
-    #include "groveehr.h"
+    #include "groveehr.hpp"
 %}
 
-%include "groveehr.h"
+%include "groveehr.hpp"
+
+%pragma(java) jniclasscode=%{
+    static {
+        try {
+            System.loadLibrary("javaupm_groveehr");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Native code library failed to load. \n" + e);
+            System.exit(1);
+        }
+    }
+%}

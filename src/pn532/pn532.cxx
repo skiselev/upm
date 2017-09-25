@@ -32,7 +32,11 @@
 #include <string>
 #include <stdexcept>
 
-#include "pn532.h"
+#ifdef JAVACALLBACK
+#undef JAVACALLBACK
+#endif
+
+#include "pn532.hpp"
 
 using namespace upm;
 using namespace std;
@@ -188,16 +192,14 @@ uint32_t PN532::getFirmwareVersion()
   @param  cmdlen    The size of the command in bytes 
   @param  timeout   timeout before giving up
     
-  @returns  1 if everything is OK, 0 if timeout occured before an
-  ACK was recieved
+  @returns  1 if everything is OK, 0 if timeout occurred before an
+  ACK was received
 */
 /**************************************************************************/
 // default timeout of one second
 bool PN532::sendCommandCheckAck(uint8_t *cmd, uint8_t cmdlen, 
                                 uint16_t timeout)
 {
-  uint16_t timer = 0;
-
   // clear any outstanding irq's
   isReady();
   
@@ -743,7 +745,6 @@ bool PN532::mifareclassic_AuthenticateBlock (uint8_t * uid, uint8_t uidLen,
                                              uint8_t keyNumber,
                                              uint8_t * keyData)
 {
-  uint8_t len;
   uint8_t i;
   
   // Hang on to the key and uid data
@@ -989,8 +990,10 @@ bool PN532::mifareclassic_WriteNDEFURI (uint8_t sectorNumber,
   // in NDEF records
     
   // Setup the sector buffer (w/pre-formatted TLV wrapper and NDEF message)
-  uint8_t sectorbuffer1[16] = {0x00, 0x00, 0x03, len+5, 0xD1, 0x01, len+1, 
-                               0x55, uriIdentifier, 0x00, 0x00, 0x00, 0x00, 
+  uint8_t sectorbuffer1[16] = {0x00, 0x00, 0x03, static_cast<uint8_t>(len+5),
+                               0xD1, 0x01, static_cast<uint8_t>(len+1),
+                               0x55, static_cast<uint8_t>(uriIdentifier), 
+                               0x00, 0x00, 0x00, 0x00, 
                                0x00, 0x00, 0x00};
   uint8_t sectorbuffer2[16] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -1326,13 +1329,13 @@ bool PN532::ntag2xx_WriteNDEFURI (NDEF_URI_T uriIdentifier, char * url,
                        each lock bit can lock (4 bit + 4 bits) */
       /* NDEF Message TLV - URI Record */
       0x03,         /* Tag Field (0x03 = NDEF Message) */
-      len+5,        /* Payload Length (not including 0xFE trailer) */
+      static_cast<uint8_t>(len+5), /* Payload Length (not including 0xFE trailer) */
       0xD1,         /* NDEF Record Header (TNF=0x1:Well known record +
                        SR + ME + MB) */
       0x01,         /* Type Length for the record type indicator */
-      len+1,        /* Payload len */
+      static_cast<uint8_t>(len+1),        /* Payload len */
       0x55,         /* Record Type Indicator (0x55 or 'U' = URI Record) */
-      uriIdentifier /* URI Prefix (ex. 0x01 = "http://www.") */
+      static_cast<uint8_t>(uriIdentifier) /* URI Prefix (ex. 0x01 = "http://www.") */
     };
   
   // Write 12 byte header (three pages of data starting at page 4)
@@ -1463,12 +1466,6 @@ void PN532::readData(uint8_t* buff, uint8_t n)
 
   memset(buf, 0, n+2);
   usleep(2000); 
-  if (m_i2c.address(m_addr) != mraa::SUCCESS)
-    {
-      throw std::runtime_error(std::string(__FUNCTION__) +
-                               ": mraa_i2c_address() failed");
-      return;
-    }
 
   rv = m_i2c.read(buf, n + 2);
 
@@ -1536,13 +1533,6 @@ void PN532::writeCommand(uint8_t* cmd, uint8_t cmdlen)
   
   buf[offset++] = ~checksum;
   buf[offset] = PN532_POSTAMBLE;
-
-  if (m_i2c.address(m_addr) != mraa::SUCCESS)
-    {
-      throw std::runtime_error(std::string(__FUNCTION__) +
-                               ": mraa_i2c_address() failed");
-      return;
-    }
 
   if (m_i2c.write(buf, cmdlen + 8 - 1) != mraa::SUCCESS)
     {
